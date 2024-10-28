@@ -4,6 +4,8 @@ import 'package:ecom/app/screens/favorite.dart';
 import 'package:ecom/app/screens/home.dart';
 import 'package:ecom/app/screens/profile.dart';
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
+import 'package:hive_flutter/hive_flutter.dart';
 import 'package:iconsax/iconsax.dart';
 import 'package:persistent_bottom_nav_bar_v2/persistent_bottom_nav_bar_v2.dart';
 
@@ -50,7 +52,33 @@ class _CustomBottomNavBarState extends State<CustomBottomNavBar> {
           item: ItemConfig(
             activeColorSecondary: activeColor,
             activeForegroundColor: activeColor,
-            inactiveIcon: const Icon(Iconsax.shopping_cart),
+            inactiveIcon: ValueListenableBuilder(
+                valueListenable: Hive.box("CART").listenable(),
+                builder: (context, box, _) {
+                  var data = box.get("products", defaultValue: []);
+                  int count = data.length;
+                  return Stack(
+                    alignment: Alignment.topRight,
+                    children: [
+                      const Icon(Iconsax.shopping_cart),
+                      count > 0
+                          ? CircleAvatar(
+                              backgroundColor:
+                                  Theme.of(context).colorScheme.primary,
+                              radius: 6,
+                              child: Text(
+                                count.toString(),
+                                style: GoogleFonts.lato(
+                                  fontSize: 8,
+                                  color:
+                                      Theme.of(context).colorScheme.onPrimary,
+                                ),
+                              ),
+                            )
+                          : const SizedBox.shrink(),
+                    ],
+                  );
+                }),
             icon: const Icon(Iconsax.shopping_cart5),
             title: "Cart",
           ),
@@ -80,10 +108,6 @@ class _CustomBottomNavBarState extends State<CustomBottomNavBar> {
       navBarBuilder: (navBarConfig) => Style1BottomNavBar(
         navBarConfig: navBarConfig,
         navBarDecoration: NavBarDecoration(
-          borderRadius: const BorderRadius.only(
-            topLeft: Radius.circular(12),
-            topRight: Radius.circular(12),
-          ),
           color: Theme.of(context).colorScheme.surfaceContainerLow,
         ),
       ),

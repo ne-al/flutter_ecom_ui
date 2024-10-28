@@ -1,11 +1,19 @@
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:gap/gap.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:hive_flutter/hive_flutter.dart';
 import 'package:iconsax/iconsax.dart';
+import 'package:lottie/lottie.dart';
+import 'package:sliding_up_panel/sliding_up_panel.dart';
 
 class CartPage extends StatefulWidget {
-  const CartPage({super.key});
+  final bool fromProducts;
+  const CartPage({
+    super.key,
+    this.fromProducts = false,
+  });
 
   @override
   State<CartPage> createState() => _CartPageState();
@@ -13,213 +21,650 @@ class CartPage extends StatefulWidget {
 
 class _CartPageState extends State<CartPage> {
   bool isAllSelected = false;
+  late Box cartBox;
+  late final ValueListenable _valueListenable;
+
+  @override
+  void initState() {
+    super.initState();
+    cartBox = Hive.box("CART");
+    _valueListenable = ValueNotifier<Box>(cartBox);
+    _valueListenable.addListener(_getItemInCart);
+  }
+
+  Future<void> _getItemInCart() async {
+    var products = _valueListenable.value.get("products", defaultValue: []);
+
+    print(products);
+  }
 
   @override
   Widget build(BuildContext context) {
     return LayoutBuilder(
       builder: (context, constraints) {
         return Scaffold(
-          body: NestedScrollView(
-            headerSliverBuilder: (context, innerBoxIsScrolled) => [
-              SliverAppBar(
-                automaticallyImplyLeading: false,
-                elevation: 4,
-                shape: const RoundedRectangleBorder(
-                  borderRadius: BorderRadius.vertical(
-                    bottom: Radius.circular(20),
-                  ),
-                ),
-                backgroundColor:
-                    Theme.of(context).colorScheme.surfaceContainerLow,
-                expandedHeight: constraints.maxHeight * 0.16,
-                title: Text(
-                  "Cart",
-                  style: GoogleFonts.lato(
-                    fontSize: 28,
-                    fontWeight: FontWeight.w700,
-                    color: Theme.of(context).colorScheme.onSurfaceVariant,
-                  ),
-                ),
-                actions: [
-                  Container(
-                    width: 42,
-                    height: 42,
-                    decoration: BoxDecoration(
-                      color: Theme.of(context).colorScheme.surfaceContainerHigh,
-                      borderRadius: BorderRadius.circular(12),
-                      border: Border.all(
-                        color: Theme.of(context)
-                            .colorScheme
-                            .surfaceContainerHighest,
-                      ),
-                    ),
-                    child: Icon(
-                      Icons.more_horiz,
-                      color: Theme.of(context).colorScheme.onSurfaceVariant,
-                    ),
-                  ),
-                  const Gap(12),
-                ],
-                flexibleSpace: FlexibleSpaceBar(
-                  background: Padding(
-                    padding: const EdgeInsets.only(
-                      left: 12,
-                      right: 12,
-                      bottom: 24,
-                    ),
-                    child: Column(
-                      mainAxisSize: MainAxisSize.max,
-                      mainAxisAlignment: MainAxisAlignment.end,
-                      children: [
-                        Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 18,
-                          ),
-                          width: double.infinity,
-                          height: 60,
-                          decoration: BoxDecoration(
-                            borderRadius: BorderRadius.circular(14),
-                            color: Theme.of(context)
-                                .colorScheme
-                                .surfaceContainerHigh,
-                            border: Border.all(
-                              color: Theme.of(context)
-                                  .colorScheme
-                                  .surfaceContainerHighest,
-                            ),
-                          ),
-                          child: Row(
-                            children: [
-                              Icon(
-                                Iconsax.location,
-                                size: 22,
-                                color: Theme.of(context)
-                                    .colorScheme
-                                    .onSurfaceVariant,
-                              ),
-                              const Gap(8),
-                              Text(
-                                "92 High Street, Patna",
+          body: Padding(
+            padding: EdgeInsets.only(
+              bottom: widget.fromProducts ? 0 : 52,
+            ),
+            child: ValueListenableBuilder(
+                valueListenable: cartBox.listenable(),
+                builder: (context, box, _) {
+                  var products = box.get("products", defaultValue: []);
+
+                  return Stack(
+                    children: [
+                      SafeArea(
+                        child: NestedScrollView(
+                          headerSliverBuilder: (context, innerBoxIsScrolled) =>
+                              [
+                            SliverAppBar(
+                              automaticallyImplyLeading: false,
+                              elevation: 4,
+
+                              // expandedHeight: constraints.maxHeight * 0.16,
+                              title: Text(
+                                "Cart",
                                 style: GoogleFonts.lato(
-                                  fontSize: 18,
-                                  fontWeight: FontWeight.bold,
+                                  fontSize: 28,
+                                  fontWeight: FontWeight.w700,
                                   color: Theme.of(context)
                                       .colorScheme
                                       .onSurfaceVariant,
                                 ),
                               ),
-                              const Spacer(),
-                              Icon(
-                                Iconsax.arrow_right_3,
-                                color: Theme.of(context)
-                                    .colorScheme
-                                    .onSurfaceVariant,
-                              )
-                            ],
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              ),
-            ],
-            body: SafeArea(
-              child: Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 12,
-                  vertical: 12,
-                ),
-                decoration: BoxDecoration(
-                  color: Theme.of(context).colorScheme.surfaceContainerLow,
-                  borderRadius: const BorderRadius.only(
-                    topRight: Radius.circular(20),
-                    topLeft: Radius.circular(20),
-                  ),
-                ),
-                child: SingleChildScrollView(
-                  child: Column(
-                    children: [
-                      Row(
-                        children: [
-                          CheckboxMenuButton(
-                            value: isAllSelected,
-                            onChanged: (value) {
-                              setState(() {
-                                isAllSelected = !isAllSelected;
-                              });
-                            },
-                            child: const Text("Select All"),
-                          ),
-                        ],
-                      ),
-                      ListView.builder(
-                        physics: const NeverScrollableScrollPhysics(),
-                        shrinkWrap: true,
-                        itemCount: 20,
-                        itemBuilder: (context, index) =>
-                            CheckboxListTile.adaptive(
-                          value: isAllSelected,
-                          onChanged: (value) {
-                            setState(() {
-                              isAllSelected = !isAllSelected;
-                            });
-                          },
-                          controlAffinity: ListTileControlAffinity.leading,
-                          title: Row(
-                            children: [
-                              SizedBox(
-                                height: 80,
-                                width: 120,
-                                child: ClipRRect(
-                                  borderRadius: BorderRadius.circular(8),
-                                  child: CachedNetworkImage(
-                                    imageUrl: "https://placehold.co/2000.png",
-                                    fit: BoxFit.cover,
+                              actions: [
+                                Container(
+                                  width: 42,
+                                  height: 42,
+                                  decoration: BoxDecoration(
+                                    shape: BoxShape.circle,
+                                    border: Border.all(
+                                      color: Theme.of(context)
+                                          .colorScheme
+                                          .surfaceContainerHighest,
+                                    ),
+                                  ),
+                                  child: Icon(
+                                    Icons.more_horiz,
+                                    color: Theme.of(context)
+                                        .colorScheme
+                                        .onSurfaceVariant,
                                   ),
                                 ),
+                                const Gap(12),
+                              ],
+                              // flexibleSpace: FlexibleSpaceBar(
+                              //   background: Padding(
+                              //     padding: const EdgeInsets.only(
+                              //       left: 12,
+                              //       right: 12,
+                              //       bottom: 24,
+                              //     ),
+                              //     child: Column(
+                              //       mainAxisSize: MainAxisSize.max,
+                              //       mainAxisAlignment: MainAxisAlignment.end,
+                              //       children: [
+                              //         Container(
+                              //           padding: const EdgeInsets.symmetric(
+                              //             horizontal: 18,
+                              //           ),
+                              //           width: double.infinity,
+                              //           height: 60,
+                              //           decoration: BoxDecoration(
+                              //             borderRadius: BorderRadius.circular(14),
+                              //             color: Theme.of(context)
+                              //                 .colorScheme
+                              //                 .surfaceContainerHigh,
+                              //             border: Border.all(
+                              //               color: Theme.of(context)
+                              //                   .colorScheme
+                              //                   .surfaceContainerHighest,
+                              //             ),
+                              //           ),
+                              //           child: Row(
+                              //             children: [
+                              //               Icon(
+                              //                 Iconsax.location,
+                              //                 size: 22,
+                              //                 color: Theme.of(context)
+                              //                     .colorScheme
+                              //                     .onSurfaceVariant,
+                              //               ),
+                              //               const Gap(8),
+                              //               Text(
+                              //                 "92 High Street, Patna",
+                              //                 style: GoogleFonts.lato(
+                              //                   fontSize: 18,
+                              //                   fontWeight: FontWeight.bold,
+                              //                   color: Theme.of(context)
+                              //                       .colorScheme
+                              //                       .onSurfaceVariant,
+                              //                 ),
+                              //               ),
+                              //               const Spacer(),
+                              //               Icon(
+                              //                 Iconsax.arrow_right_3,
+                              //                 color: Theme.of(context)
+                              //                     .colorScheme
+                              //                     .onSurfaceVariant,
+                              //               )
+                              //             ],
+                              //           ),
+                              //         ),
+                              //       ],
+                              //     ),
+                              //   ),
+                              // ),
+                            ),
+                          ],
+                          body: Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 12,
+                            ),
+                            decoration: const BoxDecoration(
+                              borderRadius: BorderRadius.only(
+                                topRight: Radius.circular(20),
+                                topLeft: Radius.circular(20),
                               ),
-                              const Gap(12),
-                              Container(
-                                color: Colors.red,
-                                child: Column(
-                                  mainAxisAlignment:
-                                      MainAxisAlignment.spaceBetween,
-                                  children: [
-                                    const Text("Title"),
-                                    Row(
-                                      children: [
-                                        const Text(
-                                          "\u20B9999.00",
+                            ),
+                            child: SingleChildScrollView(
+                              child: Column(
+                                children: [
+                                  products.length > 0
+                                      ? ListView.separated(
+                                          physics:
+                                              const NeverScrollableScrollPhysics(),
+                                          shrinkWrap: true,
+                                          itemCount: products.length,
+                                          separatorBuilder: (context, index) =>
+                                              Padding(
+                                            padding: const EdgeInsets.symmetric(
+                                                horizontal: 20),
+                                            child: Divider(
+                                              thickness: 0.8,
+                                              color: Theme.of(context)
+                                                  .colorScheme
+                                                  .surfaceContainerHighest,
+                                            ),
+                                          ),
+                                          itemBuilder: (context, index) =>
+                                              ListTile(
+                                            title: Row(
+                                              children: [
+                                                ClipRRect(
+                                                  borderRadius:
+                                                      BorderRadius.circular(12),
+                                                  child: CachedNetworkImage(
+                                                    height: 130,
+                                                    width: 130,
+                                                    imageUrl:
+                                                        "https://placehold.co/2000.png",
+                                                    fit: BoxFit.cover,
+                                                  ),
+                                                ),
+                                                const Gap(18),
+                                                Expanded(
+                                                  child: SizedBox(
+                                                    height: 130,
+                                                    child: Column(
+                                                      crossAxisAlignment:
+                                                          CrossAxisAlignment
+                                                              .start,
+                                                      mainAxisAlignment:
+                                                          MainAxisAlignment
+                                                              .spaceBetween,
+                                                      children: [
+                                                        Row(
+                                                          mainAxisAlignment:
+                                                              MainAxisAlignment
+                                                                  .spaceBetween,
+                                                          children: [
+                                                            Text(
+                                                              "PRODUCT NAME ${index + 1}",
+                                                              maxLines: 2,
+                                                              style: GoogleFonts
+                                                                  .lato(
+                                                                fontSize: 18,
+                                                                fontWeight:
+                                                                    FontWeight
+                                                                        .w600,
+                                                                color: Theme.of(
+                                                                        context)
+                                                                    .colorScheme
+                                                                    .onSurfaceVariant,
+                                                              ),
+                                                            ),
+                                                            const Icon(
+                                                                Icons.close),
+                                                          ],
+                                                        ),
+                                                        Row(
+                                                          mainAxisAlignment:
+                                                              MainAxisAlignment
+                                                                  .spaceBetween,
+                                                          children: [
+                                                            Text(
+                                                              "\u20B910.00",
+                                                              style: GoogleFonts
+                                                                  .lato(
+                                                                fontSize: 16,
+                                                                fontWeight:
+                                                                    FontWeight
+                                                                        .w500,
+                                                              ),
+                                                            ),
+                                                            Row(
+                                                              children: [
+                                                                Container(
+                                                                  padding:
+                                                                      const EdgeInsets
+                                                                          .all(
+                                                                          5),
+                                                                  decoration:
+                                                                      BoxDecoration(
+                                                                    border:
+                                                                        Border
+                                                                            .all(
+                                                                      color: Theme.of(
+                                                                              context)
+                                                                          .colorScheme
+                                                                          .surfaceContainerHigh,
+                                                                    ),
+                                                                    borderRadius:
+                                                                        BorderRadius
+                                                                            .circular(
+                                                                      8,
+                                                                    ),
+                                                                  ),
+                                                                  child: Icon(
+                                                                    Iconsax
+                                                                        .minus,
+                                                                    size: 24,
+                                                                    color: Theme.of(
+                                                                            context)
+                                                                        .colorScheme
+                                                                        .surfaceContainerHighest,
+                                                                  ),
+                                                                ),
+                                                                const Gap(12),
+                                                                Text(
+                                                                  "1",
+                                                                  style:
+                                                                      GoogleFonts
+                                                                          .lato(
+                                                                    fontSize:
+                                                                        24,
+                                                                  ),
+                                                                ),
+                                                                const Gap(12),
+                                                                Container(
+                                                                  padding:
+                                                                      const EdgeInsets
+                                                                          .all(
+                                                                          5),
+                                                                  decoration:
+                                                                      BoxDecoration(
+                                                                    border:
+                                                                        Border
+                                                                            .all(
+                                                                      color: Colors
+                                                                          .green
+                                                                          .shade700,
+                                                                    ),
+                                                                    borderRadius:
+                                                                        BorderRadius
+                                                                            .circular(
+                                                                      8,
+                                                                    ),
+                                                                  ),
+                                                                  child: Icon(
+                                                                    Iconsax.add,
+                                                                    size: 24,
+                                                                    color: Theme.of(
+                                                                            context)
+                                                                        .colorScheme
+                                                                        .onSurfaceVariant,
+                                                                  ),
+                                                                ),
+                                                              ],
+                                                            ),
+                                                          ],
+                                                        )
+                                                      ],
+                                                    ),
+                                                  ),
+                                                ),
+                                              ],
+                                            ),
+                                          ),
+                                        )
+                                      : const Center(
+                                          child: Column(
+                                            mainAxisAlignment:
+                                                MainAxisAlignment.center,
+                                            children: [
+                                              Text("NO ITEMS IN CART"),
+                                            ],
+                                          ),
                                         ),
-                                        Icon(Iconsax.minus,
-                                            size: 18,
-                                            color: Theme.of(context)
-                                                .colorScheme
-                                                .onSurfaceVariant),
-                                        const Text("1"),
-                                        Icon(Iconsax.add,
-                                            size: 18,
-                                            color: Theme.of(context)
-                                                .colorScheme
-                                                .onSurfaceVariant)
-                                      ],
-                                    ),
-                                  ],
-                                ),
-                              )
-                            ],
+                                ],
+                              ),
+                            ),
                           ),
                         ),
                       ),
+                      if (products.length > 0)
+                        SlidingUpPanel(
+                          minHeight: 56,
+                          maxHeight: constraints.maxHeight * 0.45,
+                          renderPanelSheet: false,
+                          backdropEnabled: true,
+                          isDraggable: true,
+                          panelSnapping: true,
+                          parallaxEnabled: true,
+                          borderRadius: const BorderRadius.only(
+                            topLeft: Radius.circular(16),
+                            topRight: Radius.circular(16),
+                          ),
+                          panel: _expandedContent(
+                            context,
+                            products.length,
+                          ),
+                          collapsed: _collapsedContent(),
+                        ),
                     ],
-                  ),
-                ),
-              ),
-            ),
+                  );
+                }),
           ),
         );
       },
     );
   }
+}
+
+// Widget to show when the sheet is minimized
+Widget _collapsedContent() {
+  return Container(
+    margin: const EdgeInsets.only(left: 12, right: 12),
+    decoration: const BoxDecoration(
+      color: Colors.green,
+      borderRadius: BorderRadius.only(
+        topLeft: Radius.circular(16),
+        topRight: Radius.circular(16),
+      ),
+    ),
+    padding: const EdgeInsets.all(16),
+    child: Center(
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Text(
+            'Checkout',
+            style: GoogleFonts.lato(
+              color: Colors.white,
+              fontSize: 18,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          Lottie.asset(
+            "assets/lottie/swipe_up.json",
+            fit: BoxFit.cover,
+          ),
+        ],
+      ),
+    ),
+  );
+}
+
+// Widget to show when the sheet is fully expanded
+Widget _expandedContent(BuildContext context, int totalLength) {
+  return Container(
+    margin: const EdgeInsets.all(12.0),
+    decoration: BoxDecoration(
+      color: Theme.of(context).colorScheme.surfaceContainerHigh,
+      borderRadius: const BorderRadius.only(
+        topLeft: Radius.circular(16),
+        topRight: Radius.circular(16),
+        bottomLeft: Radius.circular(16),
+        bottomRight: Radius.circular(16),
+      ),
+    ),
+    padding: const EdgeInsets.all(8),
+    child: SingleChildScrollView(
+      child: Column(
+        children: [
+          ...List.generate(
+            totalLength,
+            (index) => ListTile(
+              leading: CircleAvatar(
+                radius: 16,
+                child: Text(
+                  "${index + 1}",
+                  style: GoogleFonts.lato(
+                    fontSize: 13,
+                  ),
+                ),
+              ),
+              title: Text(
+                'Item ${index + 1}',
+                style: GoogleFonts.lato(
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              subtitle: Text(
+                'Additional information here',
+                style: GoogleFonts.lato(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w400,
+                ),
+              ),
+              trailing: Text(
+                '\u20B910.00',
+                style: GoogleFonts.lato(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w400,
+                ),
+              ),
+            ),
+          ),
+          const Padding(
+            padding: EdgeInsets.all(12.0),
+            child: Divider(),
+          ),
+          Container(
+            margin: const EdgeInsets.symmetric(horizontal: 4),
+            width: double.infinity,
+            height: 50,
+            padding: const EdgeInsets.symmetric(horizontal: 12),
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(12),
+              color: Theme.of(context).colorScheme.surfaceContainerHighest,
+              border: Border.all(
+                color: Theme.of(context)
+                    .colorScheme
+                    .surfaceContainerLow
+                    .withAlpha(140),
+              ),
+            ),
+            child: Row(
+              children: [
+                Icon(
+                  Iconsax.location,
+                  color: Theme.of(context).colorScheme.onSurfaceVariant,
+                ),
+                const Gap(8),
+                Text(
+                  "High street, Patna",
+                  style: GoogleFonts.lato(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w600,
+                    color: Theme.of(context).colorScheme.onSurfaceVariant,
+                  ),
+                ),
+                const Spacer(),
+                Icon(
+                  Iconsax.arrow_right_3,
+                  color: Theme.of(context).colorScheme.onSurfaceVariant,
+                )
+              ],
+            ),
+          ),
+          const Gap(12),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 14),
+            child: Column(
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      "Subtotal:",
+                      style: GoogleFonts.lato(
+                        fontWeight: FontWeight.w500,
+                        fontSize: 18,
+                      ),
+                    ),
+                    Row(
+                      children: [
+                        Text(
+                          "\u20B9770.00",
+                          style: GoogleFonts.lato(
+                            decoration: TextDecoration.lineThrough,
+                            fontSize: 16,
+                            fontWeight: FontWeight.w500,
+                            color: Theme.of(context).colorScheme.primary,
+                          ),
+                        ),
+                        const Gap(8),
+                        Text(
+                          "\u20B9700.00",
+                          style: GoogleFonts.lato(
+                            fontWeight: FontWeight.w500,
+                            fontSize: 18,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      "Delivery Fee:",
+                      style: GoogleFonts.lato(
+                        fontWeight: FontWeight.w500,
+                        fontSize: 18,
+                      ),
+                    ),
+                    Text(
+                      "\u20B970.00",
+                      style: GoogleFonts.lato(
+                        fontWeight: FontWeight.w500,
+                        fontSize: 18,
+                      ),
+                    )
+                  ],
+                ),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      "Discount:",
+                      style: GoogleFonts.lato(
+                        fontWeight: FontWeight.w500,
+                        fontSize: 18,
+                      ),
+                    ),
+                    Text(
+                      "10%",
+                      style: GoogleFonts.lato(
+                        fontWeight: FontWeight.w500,
+                        fontSize: 18,
+                      ),
+                    )
+                  ],
+                ),
+              ],
+            ),
+          ),
+
+          // Container(
+          //   margin: const EdgeInsets.symmetric(horizontal: 4),
+          //   width: double.infinity,
+          //   height: 50,
+          //   padding: const EdgeInsets.symmetric(horizontal: 12),
+          //   decoration: BoxDecoration(
+          //     borderRadius: BorderRadius.circular(12),
+          //     color: Theme.of(context).colorScheme.surfaceContainerHighest,
+          //     border: Border.all(
+          //       color: Theme.of(context)
+          //           .colorScheme
+          //           .surfaceContainerLow
+          //           .withAlpha(140),
+          //     ),
+          //   ),
+          //   child: Row(
+          //     children: [
+          //       Icon(
+          //         Iconsax.ticket_discount,
+          //         color: Theme.of(context).colorScheme.onSurfaceVariant,
+          //       ),
+          //       const Gap(8),
+          //       Text(
+          //         "Apply Coupon Code",
+          //         style: GoogleFonts.lato(
+          //           fontSize: 16,
+          //           fontWeight: FontWeight.w600,
+          //           color: Theme.of(context).colorScheme.onSurfaceVariant,
+          //         ),
+          //       ),
+          //       const Spacer(),
+          //       Icon(
+          //         Iconsax.arrow_right_3,
+          //         color: Theme.of(context).colorScheme.onSurfaceVariant,
+          //       )
+          //     ],
+          //   ),
+          // ),
+
+          const Gap(20),
+          Container(
+            width: double.infinity,
+            height: 50,
+            decoration: BoxDecoration(
+              color: Colors.green,
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Center(
+              child: Text(
+                "Checkout",
+                style: GoogleFonts.lato(
+                  fontWeight: FontWeight.bold,
+                  fontSize: 18,
+                ),
+              ),
+            ),
+          ),
+          const Gap(20),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Text(
+                "Made with ♥ by Neal",
+                style: GoogleFonts.lato(
+                  fontSize: 12,
+                  fontWeight: FontWeight.w400,
+                  color: Theme.of(context).colorScheme.onSurfaceVariant,
+                ),
+              ),
+            ],
+          ),
+          const Gap(20),
+        ],
+      ),
+    ),
+  );
 }

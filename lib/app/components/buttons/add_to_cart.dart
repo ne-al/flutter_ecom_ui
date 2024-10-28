@@ -86,61 +86,77 @@ class _AddToCartButtonState extends State<AddToCartButton>
 
   @override
   Widget build(BuildContext context) {
-    return Flexible(
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 500),
-        padding: const EdgeInsets.all(12),
-        height: 45,
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(8),
-          color: !isAddedToCart || isAlreadyInCart
-              ? Theme.of(context).colorScheme.primary
-              : Colors.green,
-        ),
-        child: !isAddedToCart && !isAlreadyInCart
-            ? GestureDetector(
-                onTap: () async {
-                  setState(
-                    () {
-                      isAddedToCart = !isAddedToCart;
-                      showText = !showText;
+    return InkWell(
+      onTap: () async {
+        if (isAddedToCart) {
+          pushScreen(
+            context,
+            screen: const CartPage(
+              fromProducts: true,
+            ),
+            withNavBar: true,
+            pageTransitionAnimation: PageTransitionAnimation.cupertino,
+          );
+        } else {
+          setState(
+            () {
+              isAddedToCart = !isAddedToCart;
+              showText = !showText;
 
-                      if (isAddedToCart) {
-                        animationController.reset();
-                        animationController.forward();
-                      }
-                    },
-                  );
+              if (isAddedToCart) {
+                animationController.reset();
+                animationController.forward();
+              }
+            },
+          );
 
-                  await ProductService().toggleCart(widget.productId);
-                },
-                child: addToCartButton(context),
-              )
-            : Center(
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    AnimatedSwitcher(
-                      duration: const Duration(
-                        milliseconds: 500,
+          await ProductService().toggleCart(widget.productId);
+        }
+      },
+      child: Flexible(
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 500),
+          padding: const EdgeInsets.all(12),
+          height: 45,
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(8),
+            color: !isAddedToCart || isAlreadyInCart
+                ? Theme.of(context).colorScheme.secondary
+                : Colors.green,
+            border: Border.all(
+              color: !isAddedToCart || isAlreadyInCart
+                  ? Theme.of(context).colorScheme.onSecondaryContainer
+                  : Colors.green.shade600,
+            ),
+          ),
+          child: !isAddedToCart && !isAlreadyInCart
+              ? addToCartButton(context)
+              : Center(
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      AnimatedSwitcher(
+                        duration: const Duration(
+                          milliseconds: 500,
+                        ),
+                        switchInCurve: Curves.easeIn,
+                        switchOutCurve: Curves.easeOut,
+                        child: !isAlreadyInCart
+                            ? showText
+                                ? showGoToCart
+                                    ? goToCartButton(context)
+                                    : addedToCartText(context)
+                                : addingToCartAnimation(
+                                    context,
+                                    animationController,
+                                  )
+                            : goToCartButton(context),
                       ),
-                      switchInCurve: Curves.easeIn,
-                      switchOutCurve: Curves.easeOut,
-                      child: !isAlreadyInCart
-                          ? showText
-                              ? showGoToCart
-                                  ? goToCartButton(context)
-                                  : addedToCartText(context)
-                              : addingToCartAnimation(
-                                  context,
-                                  animationController,
-                                )
-                          : goToCartButton(context),
-                    ),
-                    const Gap(12),
-                  ],
+                      const Gap(12),
+                    ],
+                  ),
                 ),
-              ),
+        ),
       ),
     );
   }
@@ -151,7 +167,7 @@ Widget addToCartButton(BuildContext context) {
     child: Text(
       "Add to cart",
       style: GoogleFonts.lato(
-        color: Theme.of(context).colorScheme.onPrimary,
+        color: Theme.of(context).colorScheme.onSecondary,
         fontSize: 16,
         fontWeight: FontWeight.bold,
       ),
@@ -202,21 +218,13 @@ Widget addedToCartText(BuildContext context) {
 }
 
 Widget goToCartButton(BuildContext context) {
-  return GestureDetector(
-    onTap: () => pushScreen(
-      context,
-      screen: const CartPage(),
-      withNavBar: true,
-      pageTransitionAnimation: PageTransitionAnimation.cupertino,
-    ),
-    child: Center(
-      child: Text(
-        "Go to cart",
-        style: GoogleFonts.lato(
-          color: Theme.of(context).colorScheme.onPrimary,
-          fontSize: 16,
-          fontWeight: FontWeight.bold,
-        ),
+  return Center(
+    child: Text(
+      "Go to cart",
+      style: GoogleFonts.lato(
+        color: Theme.of(context).colorScheme.onSecondary,
+        fontSize: 16,
+        fontWeight: FontWeight.bold,
       ),
     ),
   );

@@ -99,7 +99,7 @@ class _HomePageState extends State<HomePage> {
                   floating: true,
                   centerTitle: true,
                   automaticallyImplyLeading: false,
-                  expandedHeight: constraints.maxHeight * 0.095,
+                  expandedHeight: constraints.maxHeight * 0.08,
                   flexibleSpace: FlexibleSpaceBar(
                     expandedTitleScale: 1,
                     centerTitle: false,
@@ -111,7 +111,8 @@ class _HomePageState extends State<HomePage> {
                         Center(
                           child: Icon(
                             Iconsax.menu_1,
-                            color: Theme.of(context).colorScheme.onSurface,
+                            color:
+                                Theme.of(context).colorScheme.onSurfaceVariant,
                             size: 28,
                           ),
                         ),
@@ -148,7 +149,9 @@ class _HomePageState extends State<HomePage> {
                             Icon(
                               Iconsax.notification,
                               size: 28,
-                              color: Theme.of(context).colorScheme.onSurface,
+                              color: Theme.of(context)
+                                  .colorScheme
+                                  .onSurfaceVariant,
                             ),
                             const Positioned(
                               right: 1,
@@ -172,19 +175,33 @@ class _HomePageState extends State<HomePage> {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Text(
-                              "Categories",
-                              style: GoogleFonts.lato(
-                                fontSize: 26,
-                                fontWeight: FontWeight.w600,
-                              ),
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Text(
+                                  "Categories",
+                                  style: GoogleFonts.lato(
+                                    fontSize: 26,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
+                                IconButton(
+                                  onPressed: () {},
+                                  icon: Icon(
+                                    Iconsax.arrow_right_3,
+                                    color:
+                                        Theme.of(context).colorScheme.primary,
+                                    size: 20,
+                                  ),
+                                ),
+                              ],
                             ),
                             const Gap(12),
                             SizedBox(
                               height: constraints.maxHeight * 0.1,
                               child: ListView.separated(
                                 separatorBuilder: (context, index) =>
-                                    const Gap(14),
+                                    const Gap(12.5),
                                 shrinkWrap: true,
                                 itemCount: categories.length,
                                 scrollDirection: Axis.horizontal,
@@ -231,6 +248,9 @@ class _HomePageState extends State<HomePage> {
                                     "Get 10% off for orders above \u20B91,500",
                                     style: GoogleFonts.lato(
                                       fontSize: 18,
+                                      color: Theme.of(context)
+                                          .colorScheme
+                                          .onSurfaceVariant,
                                     ),
                                   ),
                                   Icon(

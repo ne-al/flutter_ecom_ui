@@ -51,7 +51,6 @@ class ProductApi {
   }
 
   // get product by id
-
   Future<Map> getProductById(String id) async {
     Uri url = Uri.parse("$baseUrl/products/$id");
 

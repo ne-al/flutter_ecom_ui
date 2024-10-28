@@ -26,7 +26,7 @@ class ProductTile extends StatelessWidget {
   Widget build(BuildContext context) {
     return Column(
       children: [
-        const Gap(16),
+        const Gap(12),
         Row(
           children: [
             Text(
@@ -37,17 +37,16 @@ class ProductTile extends StatelessWidget {
               ),
             ),
             const Spacer(),
-            Text(
-              "See more",
-              style: GoogleFonts.lato(
+            IconButton(
+              onPressed: () {},
+              icon: Icon(
+                Iconsax.arrow_right_3,
                 color: Theme.of(context).colorScheme.primary,
-                fontWeight: FontWeight.w600,
-                fontSize: 15,
+                size: 20,
               ),
             ),
           ],
         ),
-        const Gap(12),
         MasonryGridView.count(
           shrinkWrap: true,
           physics: const NeverScrollableScrollPhysics(),
@@ -102,37 +101,40 @@ class ProductTile extends StatelessWidget {
                                 ),
                               ),
                               constraints: BoxConstraints(
-                                maxHeight: index.isEven ? 34 : 28,
-                                maxWidth: index.isEven ? 34 : 28,
+                                maxHeight: index.isEven ? 34 : 32,
+                                maxWidth: index.isEven ? 34 : 32,
                               ),
-                              iconSize: index.isEven ? 19 : 13.2,
+                              iconSize: index.isEven ? 18 : 16,
                               onPressed: () {
                                 likeProduct(product["id"]);
                               },
                               icon: ValueListenableBuilder(
-                                  valueListenable:
-                                      Hive.box("FAVORITES").listenable(),
-                                  builder: (context, box, child) {
-                                    List likedProduct =
-                                        box.get("products", defaultValue: []);
+                                valueListenable:
+                                    Hive.box("FAVORITES").listenable(),
+                                builder: (context, box, child) {
+                                  List likedProduct = box.get(
+                                    "products",
+                                    defaultValue: [],
+                                  );
 
-                                    bool isLiked =
-                                        likedProduct.contains(product["id"]);
+                                  bool isLiked =
+                                      likedProduct.contains(product["id"]);
 
-                                    return isLiked
-                                        ? Icon(
-                                            Iconsax.heart5,
-                                            color: Theme.of(context)
-                                                .colorScheme
-                                                .onSurfaceVariant,
-                                          )
-                                        : Icon(
-                                            Iconsax.heart,
-                                            color: Theme.of(context)
-                                                .colorScheme
-                                                .primary,
-                                          );
-                                  }),
+                                  return isLiked
+                                      ? Icon(
+                                          Iconsax.heart5,
+                                          color: Theme.of(context)
+                                              .colorScheme
+                                              .onSurfaceVariant,
+                                        )
+                                      : Icon(
+                                          Iconsax.heart,
+                                          color: Theme.of(context)
+                                              .colorScheme
+                                              .primary,
+                                        );
+                                },
+                              ),
                             ),
                           ),
                         ],
@@ -147,19 +149,19 @@ class ProductTile extends StatelessWidget {
                             overflow: TextOverflow.ellipsis,
                             style: GoogleFonts.lato(
                               fontWeight: FontWeight.w700,
-                              fontSize: 16,
+                              fontSize: 16.5,
                             ),
                           ),
                           const Gap(4),
                           Row(
                             children: [
                               Text(
-                                "\u20B9 ${product["price"]}",
+                                "\u20B9${product["price"]}",
                                 maxLines: 1,
                                 overflow: TextOverflow.ellipsis,
                                 style: GoogleFonts.lato(
                                   fontWeight: FontWeight.w600,
-                                  fontSize: 15,
+                                  fontSize: 14.5,
                                   color: Theme.of(context).colorScheme.outline,
                                 ),
                               ),
@@ -174,7 +176,7 @@ class ProductTile extends StatelessWidget {
                                 "${product["rating"]} (${product["reviews"].length * (index + 1) + (index + 1 % 5) * 10})",
                                 style: GoogleFonts.lato(
                                   fontWeight: FontWeight.w400,
-                                  fontSize: 14,
+                                  fontSize: 13,
                                 ),
                               ),
                             ],

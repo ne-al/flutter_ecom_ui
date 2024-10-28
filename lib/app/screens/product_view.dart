@@ -76,11 +76,15 @@ class _ProductViewState extends State<ProductView> {
                 ),
                 color: Theme.of(context).colorScheme.surfaceContainerLow,
               ),
-              child: Row(
+              child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
+                  AddToCartButton(
+                    productId: widget.productId,
+                  ),
+                  const Gap(6),
                   Flexible(
                     child: Text(
                       "Delivered by ${DateTime.now().day + 2}th ${DateTime.now().month == 10 ? 'October' : 'November'}",
@@ -90,10 +94,6 @@ class _ProductViewState extends State<ProductView> {
                         fontWeight: FontWeight.w600,
                       ),
                     ),
-                  ),
-                  const Gap(20),
-                  AddToCartButton(
-                    productId: widget.productId,
                   ),
                 ],
               ),
@@ -228,12 +228,12 @@ class _ProductViewState extends State<ProductView> {
                                           children: [
                                             const Icon(
                                               Iconsax.like_15,
-                                              color: Colors.amber,
+                                              color: Colors.green,
                                               size: 18,
                                             ),
                                             const Gap(6),
                                             Text(
-                                              "82%",
+                                              "93%",
                                               style: GoogleFonts.lato(),
                                             ),
                                           ],
@@ -258,12 +258,12 @@ class _ProductViewState extends State<ProductView> {
                                           children: [
                                             const Icon(
                                               Iconsax.message_question5,
-                                              color: Colors.amber,
+                                              color: Colors.grey,
                                               size: 18,
                                             ),
                                             const Gap(6),
                                             Text(
-                                              "102",
+                                              "2,127",
                                               style: GoogleFonts.lato(),
                                             ),
                                           ],
@@ -277,9 +277,16 @@ class _ProductViewState extends State<ProductView> {
                               Container(
                                 padding: const EdgeInsets.all(12),
                                 decoration: BoxDecoration(
-                                  color: Colors.grey.shade800,
+                                  color: Theme.of(context)
+                                      .colorScheme
+                                      .surfaceContainerHigh,
                                   borderRadius: const BorderRadius.all(
                                     Radius.circular(10),
+                                  ),
+                                  border: Border.all(
+                                    color: Theme.of(context)
+                                        .colorScheme
+                                        .surfaceContainerHighest,
                                   ),
                                 ),
                                 child: Row(
@@ -289,7 +296,9 @@ class _ProductViewState extends State<ProductView> {
                                       style: GoogleFonts.lato(
                                         fontSize: 22,
                                         fontWeight: FontWeight.w700,
-                                        color: Colors.grey.shade200,
+                                        color: Theme.of(context)
+                                            .colorScheme
+                                            .onSurfaceVariant,
                                       ),
                                     ),
                                     const Gap(12),
