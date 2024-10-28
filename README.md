@@ -1,16 +1,22 @@
-# ecom
 
-A new Flutter project.
+# ECOM UI
 
-## Getting Started
+This app was made using flutter 3.24.3
 
-This project is a starting point for a Flutter application.
+The main moto to make this app is to improve myself in ui/ux.
+## Roadmap
+I might work on this app to make it a proper ecom app.
+if i ever work on this project again i might add these features listed below.
 
-A few resources to get you started if this is your first Flutter project:
+- Firebase integrations.
 
-- [Lab: Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://docs.flutter.dev/cookbook)
+- Authentication with firebase using email, google etc.
 
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+- Using firebase firestore because thats only thing i know at the time of writing this.
+
+- This app already had local storage to store some of the data and in future i might add a function where it get synced automatically.
+
+
+## Acknowledgements
+
+ - [Store api used](https://dummyjson.com/)
