@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:carousel_slider/carousel_slider.dart';
 import 'package:ecom/app/components/buttons/add_to_cart.dart';
+import 'package:ecom/app/components/loading/loading_animation.dart';
 import 'package:ecom/core/service/product_service.dart';
 import 'package:flutter/material.dart';
 import 'package:gap/gap.dart';
@@ -469,9 +470,7 @@ class _ProductViewState extends State<ProductView> {
                       ),
                     ),
                   )
-                : const Center(
-                    child: CircularProgressIndicator.adaptive(),
-                  ),
+                : loadingAnimation(),
           ),
         );
       },

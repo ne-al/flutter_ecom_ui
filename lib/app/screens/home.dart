@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'package:ecom/app/components/loading/loading_animation.dart';
 import 'package:ecom/app/widgets/product_tile.dart';
 import 'package:ecom/core/api/product_api.dart';
 import 'package:flutter/material.dart';
@@ -277,9 +278,7 @@ class _HomePageState extends State<HomePage> {
                         ),
                       ),
                     )
-                  : const Center(
-                      child: CircularProgressIndicator.adaptive(),
-                    ),
+                  : loadingAnimation(),
             ),
           ),
         );

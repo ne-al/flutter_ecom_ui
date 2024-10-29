@@ -1,13 +1,14 @@
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:ecom/core/api/product_api.dart';
 import 'package:ecom/core/payment/order_service.dart';
 import 'package:ecom/core/payment/payment_handler.dart';
 import 'package:ecom/core/service/product_service.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:gap/gap.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:iconsax/iconsax.dart';
+import 'package:loading_animation_widget/loading_animation_widget.dart';
 import 'package:logger/logger.dart';
 import 'package:lottie/lottie.dart';
 import 'package:persistent_bottom_nav_bar_v2/persistent_bottom_nav_bar_v2.dart';
@@ -27,20 +28,25 @@ class CartPage extends StatefulWidget {
 class _CartPageState extends State<CartPage> {
   bool isAllSelected = false;
   late Box cartBox;
-  late final ValueListenable _valueListenable;
 
   @override
   void initState() {
     super.initState();
     cartBox = Hive.box("CART");
-    _valueListenable = ValueNotifier<Box>(cartBox);
-    _valueListenable.addListener(_getItemInCart);
   }
 
-  Future<void> _getItemInCart() async {
-    var products = _valueListenable.value.get("products", defaultValue: []);
+  Future<void> _getItemInCart(List productIds) async {
+    List productData = [];
 
-    print(products);
+    if (productIds.isNotEmpty) {
+      for (var id in productIds) {
+        var data = await ProductApi().getProductById(id);
+
+        productData.add(data);
+      }
+    }
+
+    Logger().e(productData);
   }
 
   @override
@@ -220,7 +226,7 @@ class _CartPageState extends State<CartPage> {
                     ),
                     if (products.isNotEmpty)
                       SlidingUpPanel(
-                        minHeight: 56,
+                        minHeight: constraints.maxHeight * 0.06,
                         maxHeight: constraints.maxHeight * 0.45,
                         renderPanelSheet: false,
                         backdropEnabled: true,
@@ -631,50 +637,9 @@ Widget _expandedContent(BuildContext context, int totalLength, List products) {
           // ),
 
           const Gap(20),
-          InkWell(
-            onTap: () async {
-              /**
-               * THIS IS NOT SAFE TO EXPOSE THIS THING IN APPLICATION
-               * DO IT ON SERVER TO GENERATE THE ORDER ID
-               */
-
-              var order = await createOrder(
-                amount * 100,
-                products.join(","),
-                false,
-                0,
-                {"test": "test"},
-              );
-
-              Logger().e(order);
-
-              if (context.mounted && order.isNotEmpty) {
-                pushScreenWithoutNavBar(
-                  context,
-                  PaymentHandler(
-                    orderData: order,
-                    amount: amount * 100,
-                  ),
-                );
-              }
-            },
-            child: Container(
-              width: double.infinity,
-              height: 50,
-              decoration: BoxDecoration(
-                color: Colors.green,
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: Center(
-                child: Text(
-                  "Checkout",
-                  style: GoogleFonts.lato(
-                    fontWeight: FontWeight.bold,
-                    fontSize: 18,
-                  ),
-                ),
-              ),
-            ),
+          CheckoutButton(
+            amount: amount,
+            products: products,
           ),
           const Gap(20),
           Row(
@@ -695,4 +660,88 @@ Widget _expandedContent(BuildContext context, int totalLength, List products) {
       ),
     ),
   );
+}
+
+class CheckoutButton extends StatefulWidget {
+  final double amount;
+  final List products;
+
+  const CheckoutButton({
+    super.key,
+    required this.amount,
+    required this.products,
+  });
+
+  @override
+  State<CheckoutButton> createState() => _CheckoutButtonState();
+}
+
+class _CheckoutButtonState extends State<CheckoutButton> {
+  bool isLoading = false;
+
+  @override
+  Widget build(BuildContext context) {
+    return InkWell(
+      onTap: () async {
+        /**
+        * THIS IS NOT SAFE TO EXPOSE THIS THING IN APPLICATION
+        * DO IT ON SERVER TO GENERATE THE ORDER ID
+        */
+
+        if (isLoading) return;
+
+        setState(() {
+          isLoading = true;
+        });
+
+        var order = await createOrder(
+          widget.amount * 100,
+          widget.products.join(","),
+          false,
+          0,
+          {
+            "test": "test",
+          },
+        );
+
+        if (context.mounted && order.isNotEmpty) {
+          pushScreenWithoutNavBar(
+            context,
+            PaymentHandler(
+              orderData: order,
+              amount: widget.amount * 100,
+            ),
+          );
+        }
+
+        setState(() {
+          isLoading = false;
+        });
+      },
+      child: Container(
+        width: double.infinity,
+        height: 50,
+        decoration: BoxDecoration(
+          color: Colors.green,
+          borderRadius: BorderRadius.circular(12),
+        ),
+        child: Center(
+          child: !isLoading
+              ? Text(
+                  "Checkout",
+                  style: GoogleFonts.lato(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 18,
+                  ),
+                )
+              : LoadingAnimationWidget.staggeredDotsWave(
+                  color: Colors.white,
+                  // leftDotColor: Colors.blue,
+                  // rightDotColor: Colors.pink,
+                  size: 36,
+                ),
+        ),
+      ),
+    );
+  }
 }
