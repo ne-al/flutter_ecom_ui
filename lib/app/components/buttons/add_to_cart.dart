@@ -33,7 +33,7 @@ class _AddToCartButtonState extends State<AddToCartButton>
   @override
   void initState() {
     super.initState();
-    // cartBox.clear();
+
     animationController = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 500),
@@ -113,65 +113,66 @@ class _AddToCartButtonState extends State<AddToCartButton>
           await ProductService().toggleCart(widget.productId);
         }
       },
-      child: Flexible(
-        child: AnimatedContainer(
-          duration: const Duration(milliseconds: 500),
-          padding: const EdgeInsets.all(12),
-          height: 45,
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(8),
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 500),
+        padding: const EdgeInsets.all(12),
+        height: 45,
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(8),
+          color: !isAddedToCart || isAlreadyInCart
+              ? Theme.of(context).colorScheme.secondary
+              : Colors.green,
+          border: Border.all(
             color: !isAddedToCart || isAlreadyInCart
-                ? Theme.of(context).colorScheme.secondary
-                : Colors.green,
-            border: Border.all(
-              color: !isAddedToCart || isAlreadyInCart
-                  ? Theme.of(context).colorScheme.onSecondaryContainer
-                  : Colors.green.shade600,
-            ),
+                ? Theme.of(context).colorScheme.onSecondaryContainer
+                : Colors.green.shade600,
           ),
-          child: !isAddedToCart && !isAlreadyInCart
-              ? addToCartButton(context)
-              : Center(
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      AnimatedSwitcher(
-                        duration: const Duration(
-                          milliseconds: 500,
-                        ),
-                        switchInCurve: Curves.easeIn,
-                        switchOutCurve: Curves.easeOut,
-                        child: !isAlreadyInCart
-                            ? showText
-                                ? showGoToCart
-                                    ? goToCartButton(context)
-                                    : addedToCartText(context)
-                                : addingToCartAnimation(
-                                    context,
-                                    animationController,
-                                  )
-                            : goToCartButton(context),
-                      ),
-                      const Gap(12),
-                    ],
-                  ),
-                ),
         ),
+        child: !isAddedToCart && !isAlreadyInCart
+            ? addToCartButton(context)
+            : Center(
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    AnimatedSwitcher(
+                      duration: const Duration(
+                        milliseconds: 500,
+                      ),
+                      switchInCurve: Curves.easeIn,
+                      switchOutCurve: Curves.easeOut,
+                      child: !isAlreadyInCart
+                          ? showText
+                              ? showGoToCart
+                                  ? goToCartButton(context)
+                                  : addedToCartText(context)
+                              : addingToCartAnimation(
+                                  context,
+                                  animationController,
+                                )
+                          : goToCartButton(context),
+                    ),
+                    const Gap(12),
+                  ],
+                ),
+              ),
       ),
     );
   }
 }
 
 Widget addToCartButton(BuildContext context) {
-  return Center(
-    child: Text(
-      "Add to cart",
-      style: GoogleFonts.lato(
-        color: Theme.of(context).colorScheme.onSecondary,
-        fontSize: 16,
-        fontWeight: FontWeight.bold,
+  return Row(
+    mainAxisAlignment: MainAxisAlignment.center,
+    children: [
+      Text(
+        "Add to cart",
+        style: GoogleFonts.lato(
+          color: Theme.of(context).colorScheme.onSecondary,
+          fontSize: 16,
+          fontWeight: FontWeight.bold,
+        ),
       ),
-    ),
+    ],
   );
 }
 
@@ -218,14 +219,17 @@ Widget addedToCartText(BuildContext context) {
 }
 
 Widget goToCartButton(BuildContext context) {
-  return Center(
-    child: Text(
-      "Go to cart",
-      style: GoogleFonts.lato(
-        color: Theme.of(context).colorScheme.onSecondary,
-        fontSize: 16,
-        fontWeight: FontWeight.bold,
+  return Row(
+    mainAxisAlignment: MainAxisAlignment.center,
+    children: [
+      Text(
+        "Go to cart",
+        style: GoogleFonts.lato(
+          color: Theme.of(context).colorScheme.onSecondary,
+          fontSize: 16,
+          fontWeight: FontWeight.bold,
+        ),
       ),
-    ),
+    ],
   );
 }

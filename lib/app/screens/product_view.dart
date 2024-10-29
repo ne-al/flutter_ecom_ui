@@ -81,18 +81,19 @@ class _ProductViewState extends State<ProductView> {
                 mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
-                  AddToCartButton(
-                    productId: widget.productId,
+                  SizedBox(
+                    height: 45,
+                    child: AddToCartButton(
+                      productId: widget.productId,
+                    ),
                   ),
                   const Gap(6),
-                  Flexible(
-                    child: Text(
-                      "Delivered by ${DateTime.now().day + 2}th ${DateTime.now().month == 10 ? 'October' : 'November'}",
-                      style: GoogleFonts.lato(
-                        color: Theme.of(context).colorScheme.inverseSurface,
-                        fontSize: 13,
-                        fontWeight: FontWeight.w600,
-                      ),
+                  Text(
+                    "Delivered by ${DateTime.now().day + 2}th ${DateTime.now().month == 10 ? 'October' : 'November'}",
+                    style: GoogleFonts.lato(
+                      color: Theme.of(context).colorScheme.inverseSurface,
+                      fontSize: 13,
+                      fontWeight: FontWeight.w600,
                     ),
                   ),
                 ],
