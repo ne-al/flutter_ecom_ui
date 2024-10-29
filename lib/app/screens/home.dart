@@ -120,6 +120,8 @@ class _HomePageState extends State<HomePage> {
                         const Gap(12),
                         Expanded(
                           child: TextField(
+                            autofocus: false,
+                            readOnly: true,
                             controller: _searchController,
                             decoration: InputDecoration(
                               filled: true,

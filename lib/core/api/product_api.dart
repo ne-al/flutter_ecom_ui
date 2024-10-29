@@ -28,7 +28,6 @@ class ProductApi {
   }
 
   // get products by category
-
   Future<List> getProductsByCategory(String category, {int limit = 4}) async {
     Uri url = Uri.parse("$baseUrl/products/category/$category?limit=$limit");
     List<Map<String, dynamic>> product = [];
@@ -51,7 +50,7 @@ class ProductApi {
   }
 
   // get product by id
-  Future<Map> getProductById(String id) async {
+  Future<Map> getProductById(int id) async {
     Uri url = Uri.parse("$baseUrl/products/$id");
 
     try {
@@ -69,6 +68,38 @@ class ProductApi {
       logger.e("ERROR OCCURRED: $e");
       return {};
     }
+  }
+
+  // add product to cart
+  Future<Map> addProductToCart(List products) async {
+    Uri url = Uri.parse("$baseUrl/carts/50");
+
+    var body = {
+      "merge": false,
+      "products": products,
+    };
+
+    var headers = {
+      "Content-Type": "application/json",
+    };
+
+    try {
+      var response = await http.put(
+        url,
+        body: jsonEncode(body),
+        headers: headers,
+      );
+
+      if (response.statusCode == 200) {
+        return json.decode(response.body);
+      } else {
+        logger.e("ERROR OCCURRED: ${response.statusCode}");
+        return {};
+      }
+    } catch (e) {
+      logger.e("ERROR OCCURRED: $e");
+    }
+    return {};
   }
 
   // search products by name

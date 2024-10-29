@@ -1,4 +1,5 @@
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:ecom/app/components/loading/loading_animation.dart';
 import 'package:ecom/core/api/product_api.dart';
 import 'package:ecom/core/payment/order_service.dart';
 import 'package:ecom/core/payment/payment_handler.dart';
@@ -26,27 +27,54 @@ class CartPage extends StatefulWidget {
 }
 
 class _CartPageState extends State<CartPage> {
-  bool isAllSelected = false;
+  bool isLoading = false;
+  Map productData = {};
+  List products = [];
   late Box cartBox;
 
   @override
   void initState() {
     super.initState();
     cartBox = Hive.box("CART");
+
+    cartBox.listenable(keys: ["products"]).addListener(_getItemInCart);
+
+    _getItemInCart();
   }
 
-  Future<void> _getItemInCart(List productIds) async {
-    List productData = [];
+  Future<void> _getItemInCart() async {
+    setState(() {
+      isLoading = true;
+    });
 
-    if (productIds.isNotEmpty) {
-      for (var id in productIds) {
-        var data = await ProductApi().getProductById(id);
+    List ids = await cartBox.get("products", defaultValue: []);
 
-        productData.add(data);
-      }
-    }
+    List productIds = ids.reversed.toList();
+
+    List productList = List.generate(
+      productIds.length,
+      (index) => {
+        "id": productIds[index],
+        "quantity": 1,
+      },
+    );
+
+    var data = await ProductApi().addProductToCart(productList);
+
+    setState(() {
+      productData = data;
+      products = productData["products"];
+      isLoading = false;
+    });
 
     Logger().e(productData);
+  }
+
+  @override
+  void dispose() {
+    // Clean up the listener when the widget is disposed
+    cartBox.listenable(keys: ["products"]).removeListener(_getItemInCart);
+    super.dispose();
   }
 
   @override
@@ -54,211 +82,225 @@ class _CartPageState extends State<CartPage> {
     return LayoutBuilder(
       builder: (context, constraints) {
         return Scaffold(
-          body: Padding(
-            padding: EdgeInsets.only(
-              bottom: widget.fromProducts ? 0 : 52,
-            ),
-            child: ValueListenableBuilder(
-              valueListenable: cartBox.listenable(),
-              builder: (context, box, _) {
-                List data = box.get("products", defaultValue: []);
+          body: !isLoading
+              ? Padding(
+                  padding: EdgeInsets.only(
+                    bottom: widget.fromProducts ? 0 : 52,
+                  ),
+                  child:
 
-                final reversedData = data.reversed;
+                      // ValueListenableBuilder(
+                      //   valueListenable: cartBox.listenable(),
+                      //   builder: (context, box, _) {
+                      //     List data = box.get("products", defaultValue: []);
 
-                List products = reversedData.toList();
+                      //     final reversedData = data.reversed;
 
-                return Stack(
-                  children: [
-                    SafeArea(
-                      child: NestedScrollView(
-                        headerSliverBuilder: (context, innerBoxIsScrolled) => [
-                          SliverAppBar(
-                            automaticallyImplyLeading: false,
-                            elevation: 4,
+                      //     List products = reversedData.toList();
 
-                            // expandedHeight: constraints.maxHeight * 0.16,
-                            title: Text(
-                              "Cart",
-                              style: GoogleFonts.lato(
-                                fontSize: 28,
-                                fontWeight: FontWeight.w700,
-                                color: Theme.of(context)
-                                    .colorScheme
-                                    .onSurfaceVariant,
-                              ),
-                            ),
-                            actions: [
-                              Container(
-                                width: 42,
-                                height: 42,
-                                decoration: BoxDecoration(
-                                  shape: BoxShape.circle,
-                                  border: Border.all(
-                                    color: Theme.of(context)
-                                        .colorScheme
-                                        .surfaceContainerHighest,
-                                  ),
-                                ),
-                                child: Icon(
-                                  Icons.more_horiz,
+                      //     return
+
+                      Stack(
+                    children: [
+                      SafeArea(
+                        child: NestedScrollView(
+                          headerSliverBuilder: (context, innerBoxIsScrolled) =>
+                              [
+                            SliverAppBar(
+                              automaticallyImplyLeading: false,
+                              elevation: 4,
+
+                              // expandedHeight: constraints.maxHeight * 0.16,
+                              title: Text(
+                                "Cart",
+                                style: GoogleFonts.lato(
+                                  fontSize: 28,
+                                  fontWeight: FontWeight.w700,
                                   color: Theme.of(context)
                                       .colorScheme
                                       .onSurfaceVariant,
                                 ),
                               ),
-                              const Gap(12),
-                            ],
-                            // flexibleSpace: FlexibleSpaceBar(
-                            //   background: Padding(
-                            //     padding: const EdgeInsets.only(
-                            //       left: 12,
-                            //       right: 12,
-                            //       bottom: 24,
-                            //     ),
-                            //     child: Column(
-                            //       mainAxisSize: MainAxisSize.max,
-                            //       mainAxisAlignment: MainAxisAlignment.end,
-                            //       children: [
-                            //         Container(
-                            //           padding: const EdgeInsets.symmetric(
-                            //             horizontal: 18,
-                            //           ),
-                            //           width: double.infinity,
-                            //           height: 60,
-                            //           decoration: BoxDecoration(
-                            //             borderRadius: BorderRadius.circular(14),
-                            //             color: Theme.of(context)
-                            //                 .colorScheme
-                            //                 .surfaceContainerHigh,
-                            //             border: Border.all(
-                            //               color: Theme.of(context)
-                            //                   .colorScheme
-                            //                   .surfaceContainerHighest,
-                            //             ),
-                            //           ),
-                            //           child: Row(
-                            //             children: [
-                            //               Icon(
-                            //                 Iconsax.location,
-                            //                 size: 22,
-                            //                 color: Theme.of(context)
-                            //                     .colorScheme
-                            //                     .onSurfaceVariant,
-                            //               ),
-                            //               const Gap(8),
-                            //               Text(
-                            //                 "92 High Street, Patna",
-                            //                 style: GoogleFonts.lato(
-                            //                   fontSize: 18,
-                            //                   fontWeight: FontWeight.bold,
-                            //                   color: Theme.of(context)
-                            //                       .colorScheme
-                            //                       .onSurfaceVariant,
-                            //                 ),
-                            //               ),
-                            //               const Spacer(),
-                            //               Icon(
-                            //                 Iconsax.arrow_right_3,
-                            //                 color: Theme.of(context)
-                            //                     .colorScheme
-                            //                     .onSurfaceVariant,
-                            //               )
-                            //             ],
-                            //           ),
-                            //         ),
-                            //       ],
-                            //     ),
-                            //   ),
-                            // ),
-                          ),
-                        ],
-                        body: Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 12,
-                          ),
-                          decoration: const BoxDecoration(
-                            borderRadius: BorderRadius.only(
-                              topRight: Radius.circular(20),
-                              topLeft: Radius.circular(20),
+                              actions: [
+                                GestureDetector(
+                                  onTap: () {
+                                    _getItemInCart();
+                                  },
+                                  child: Container(
+                                    width: 42,
+                                    height: 42,
+                                    decoration: BoxDecoration(
+                                      shape: BoxShape.circle,
+                                      border: Border.all(
+                                        color: Theme.of(context)
+                                            .colorScheme
+                                            .surfaceContainerHighest,
+                                      ),
+                                    ),
+                                    child: Icon(
+                                      Icons.more_horiz,
+                                      color: Theme.of(context)
+                                          .colorScheme
+                                          .onSurfaceVariant,
+                                    ),
+                                  ),
+                                ),
+                                const Gap(12),
+                              ],
+                              // flexibleSpace: FlexibleSpaceBar(
+                              //   background: Padding(
+                              //     padding: const EdgeInsets.only(
+                              //       left: 12,
+                              //       right: 12,
+                              //       bottom: 24,
+                              //     ),
+                              //     child: Column(
+                              //       mainAxisSize: MainAxisSize.max,
+                              //       mainAxisAlignment: MainAxisAlignment.end,
+                              //       children: [
+                              //         Container(
+                              //           padding: const EdgeInsets.symmetric(
+                              //             horizontal: 18,
+                              //           ),
+                              //           width: double.infinity,
+                              //           height: 60,
+                              //           decoration: BoxDecoration(
+                              //             borderRadius: BorderRadius.circular(14),
+                              //             color: Theme.of(context)
+                              //                 .colorScheme
+                              //                 .surfaceContainerHigh,
+                              //             border: Border.all(
+                              //               color: Theme.of(context)
+                              //                   .colorScheme
+                              //                   .surfaceContainerHighest,
+                              //             ),
+                              //           ),
+                              //           child: Row(
+                              //             children: [
+                              //               Icon(
+                              //                 Iconsax.location,
+                              //                 size: 22,
+                              //                 color: Theme.of(context)
+                              //                     .colorScheme
+                              //                     .onSurfaceVariant,
+                              //               ),
+                              //               const Gap(8),
+                              //               Text(
+                              //                 "92 High Street, Patna",
+                              //                 style: GoogleFonts.lato(
+                              //                   fontSize: 18,
+                              //                   fontWeight: FontWeight.bold,
+                              //                   color: Theme.of(context)
+                              //                       .colorScheme
+                              //                       .onSurfaceVariant,
+                              //                 ),
+                              //               ),
+                              //               const Spacer(),
+                              //               Icon(
+                              //                 Iconsax.arrow_right_3,
+                              //                 color: Theme.of(context)
+                              //                     .colorScheme
+                              //                     .onSurfaceVariant,
+                              //               )
+                              //             ],
+                              //           ),
+                              //         ),
+                              //       ],
+                              //     ),
+                              //   ),
+                              // ),
                             ),
-                          ),
-                          child: SingleChildScrollView(
-                            child: Column(
-                              children: [
-                                products.isNotEmpty
-                                    ? ListView.separated(
-                                        physics:
-                                            const NeverScrollableScrollPhysics(),
-                                        shrinkWrap: true,
-                                        itemCount: products.length,
-                                        separatorBuilder: (context, index) =>
-                                            Padding(
-                                          padding: const EdgeInsets.symmetric(
-                                              horizontal: 20),
-                                          child: Divider(
-                                            thickness: 0.8,
-                                            color: Theme.of(context)
-                                                .colorScheme
-                                                .surfaceContainerHighest,
+                          ],
+                          body: Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 12,
+                            ),
+                            decoration: const BoxDecoration(
+                              borderRadius: BorderRadius.only(
+                                topRight: Radius.circular(20),
+                                topLeft: Radius.circular(20),
+                              ),
+                            ),
+                            child: SingleChildScrollView(
+                              child: Column(
+                                children: [
+                                  products.isNotEmpty
+                                      ? ListView.separated(
+                                          physics:
+                                              const NeverScrollableScrollPhysics(),
+                                          shrinkWrap: true,
+                                          itemCount: products.length,
+                                          separatorBuilder: (context, index) =>
+                                              Padding(
+                                            padding: const EdgeInsets.symmetric(
+                                                horizontal: 20),
+                                            child: Divider(
+                                              thickness: 0.8,
+                                              color: Theme.of(context)
+                                                  .colorScheme
+                                                  .surfaceContainerHighest,
+                                            ),
+                                          ),
+                                          itemBuilder: (context, index) =>
+                                              _cartItemTile(
+                                            context,
+                                            index,
+                                            products,
+                                          ),
+                                        )
+                                      : const Center(
+                                          child: Column(
+                                            mainAxisAlignment:
+                                                MainAxisAlignment.center,
+                                            children: [
+                                              Text("NO ITEMS IN CART"),
+                                            ],
                                           ),
                                         ),
-                                        itemBuilder: (context, index) =>
-                                            _cartItemTile(
-                                          context,
-                                          index,
-                                          products,
-                                        ),
-                                      )
-                                    : const Center(
-                                        child: Column(
-                                          mainAxisAlignment:
-                                              MainAxisAlignment.center,
-                                          children: [
-                                            Text("NO ITEMS IN CART"),
-                                          ],
-                                        ),
-                                      ),
-                              ],
+                                ],
+                              ),
                             ),
                           ),
                         ),
                       ),
-                    ),
-                    if (products.isNotEmpty)
-                      SlidingUpPanel(
-                        minHeight: constraints.maxHeight * 0.06,
-                        maxHeight: constraints.maxHeight * 0.45,
-                        renderPanelSheet: false,
-                        backdropEnabled: true,
-                        isDraggable: true,
-                        panelSnapping: true,
-                        parallaxEnabled: true,
-                        borderRadius: const BorderRadius.only(
-                          topLeft: Radius.circular(16),
-                          topRight: Radius.circular(16),
+                      if (products.isNotEmpty)
+                        SlidingUpPanel(
+                          minHeight: constraints.maxHeight * 0.06,
+                          maxHeight: constraints.maxHeight * 0.45,
+                          renderPanelSheet: false,
+                          backdropEnabled: true,
+                          isDraggable: true,
+                          panelSnapping: true,
+                          parallaxEnabled: true,
+                          borderRadius: const BorderRadius.only(
+                            topLeft: Radius.circular(16),
+                            topRight: Radius.circular(16),
+                          ),
+                          panel: _expandedContent(
+                            context,
+                            products.length,
+                            productData,
+                          ),
+                          collapsed: _collapsedContent(),
                         ),
-                        panel: _expandedContent(
-                          context,
-                          products.length,
-                          products,
-                        ),
-                        collapsed: _collapsedContent(),
-                      ),
-                  ],
-                );
-              },
-            ),
-          ),
+                    ],
+                  ),
+                  //   },
+                  // ),
+                )
+              : Center(
+                  child: loadingAnimation(),
+                ),
         );
       },
     );
   }
 }
 
-Widget _removeItem(List products, int productId) {
+Widget _removeItem(int productId) {
   return InkWell(
-    onTap: () {
-      ProductService().toggleCart(products[productId]);
+    onTap: () async {
+      await ProductService().toggleCart(productId);
     },
     child: const Icon(
       Iconsax.trash,
@@ -268,7 +310,7 @@ Widget _removeItem(List products, int productId) {
   );
 }
 
-Widget _cartItemTile(BuildContext context, int index, List productIds) {
+Widget _cartItemTile(BuildContext context, int index, List products) {
   return ListTile(
     title: Row(
       children: [
@@ -277,8 +319,7 @@ Widget _cartItemTile(BuildContext context, int index, List productIds) {
           child: CachedNetworkImage(
             height: 130,
             width: 130,
-            imageUrl:
-                "https://placehold.co/720.png?text=PRODUCT+${index + 1}+IMAGE&font=lato",
+            imageUrl: products[index]["thumbnail"],
             fit: BoxFit.cover,
           ),
         ),
@@ -291,27 +332,31 @@ Widget _cartItemTile(BuildContext context, int index, List productIds) {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Text(
-                      "PRODUCT NAME ${index + 1}",
-                      maxLines: 2,
-                      style: GoogleFonts.lato(
-                        fontSize: 18,
-                        fontWeight: FontWeight.w600,
-                        color: Theme.of(context).colorScheme.onSurfaceVariant,
+                    Flexible(
+                      child: Text(
+                        products[index]["title"],
+                        maxLines: 2,
+                        style: GoogleFonts.lato(
+                          fontSize: 18,
+                          fontWeight: FontWeight.w600,
+                          color: Theme.of(context).colorScheme.onSurfaceVariant,
+                        ),
                       ),
                     ),
-                    _removeItem(productIds, index)
+                    const Gap(12),
+                    _removeItem(products[index]['id'])
                   ],
                 ),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Text(
-                      "\u20B910.00",
+                      "\u20B9${products[index]["discountedPrice"]}",
                       style: GoogleFonts.lato(
-                        fontSize: 16,
+                        fontSize: 18,
                         fontWeight: FontWeight.w500,
                       ),
                     ),
@@ -331,7 +376,7 @@ Widget _cartItemTile(BuildContext context, int index, List productIds) {
                           ),
                           child: Icon(
                             Iconsax.minus,
-                            size: 24,
+                            size: 18,
                             color: Theme.of(context)
                                 .colorScheme
                                 .surfaceContainerHighest,
@@ -339,9 +384,9 @@ Widget _cartItemTile(BuildContext context, int index, List productIds) {
                         ),
                         const Gap(12),
                         Text(
-                          "1",
+                          "${products[index]["quantity"]}",
                           style: GoogleFonts.lato(
-                            fontSize: 24,
+                            fontSize: 20,
                           ),
                         ),
                         const Gap(12),
@@ -357,7 +402,7 @@ Widget _cartItemTile(BuildContext context, int index, List productIds) {
                           ),
                           child: Icon(
                             Iconsax.add,
-                            size: 24,
+                            size: 18,
                             color:
                                 Theme.of(context).colorScheme.onSurfaceVariant,
                           ),
@@ -410,8 +455,20 @@ Widget _collapsedContent() {
 }
 
 // Widget to show when the sheet is fully expanded
-Widget _expandedContent(BuildContext context, int totalLength, List products) {
-  double amount = (totalLength * 10) * 0.9 + 40;
+Widget _expandedContent(
+    BuildContext context, int totalLength, Map productsData) {
+  double price = productsData["discountedTotal"].toDouble();
+  double deliveryFee = 40.0;
+  bool isFreeDelivery = false;
+  double amount;
+
+  if (price < 100) {
+    amount = price + deliveryFee;
+    isFreeDelivery = false;
+  } else {
+    amount = price;
+    isFreeDelivery = true;
+  }
 
   return Container(
     margin: const EdgeInsets.all(12.0),
@@ -428,9 +485,9 @@ Widget _expandedContent(BuildContext context, int totalLength, List products) {
     child: SingleChildScrollView(
       child: Column(
         children: [
-          ...List.generate(
-            totalLength,
-            (index) => ListTile(
+          ...List.generate(totalLength, (index) {
+            List products = productsData["products"];
+            return ListTile(
               leading: CircleAvatar(
                 radius: 16,
                 child: Text(
@@ -441,7 +498,7 @@ Widget _expandedContent(BuildContext context, int totalLength, List products) {
                 ),
               ),
               title: Text(
-                'Item ${index + 1}',
+                products[index]["title"],
                 style: GoogleFonts.lato(
                   fontSize: 16,
                   fontWeight: FontWeight.bold,
@@ -451,7 +508,7 @@ Widget _expandedContent(BuildContext context, int totalLength, List products) {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    'Additional information here',
+                    "${products[index]["discountPercentage"]}% off",
                     style: GoogleFonts.lato(
                       fontSize: 14,
                       fontWeight: FontWeight.w400,
@@ -463,18 +520,18 @@ Widget _expandedContent(BuildContext context, int totalLength, List products) {
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   Text(
-                    '\u20B910.00',
+                    '\u20B9${products[index]["discountedPrice"]}',
                     style: GoogleFonts.lato(
                       fontSize: 14,
                       fontWeight: FontWeight.w400,
                     ),
                   ),
                   const Gap(12),
-                  _removeItem(products, index)
+                  _removeItem(products[index]['id'])
                 ],
               ),
-            ),
-          ),
+            );
+          }),
           const Padding(
             padding: EdgeInsets.all(12.0),
             child: Divider(),
@@ -526,14 +583,14 @@ Widget _expandedContent(BuildContext context, int totalLength, List products) {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Text(
-                      "Delivery Fee:",
+                      "Discount:",
                       style: GoogleFonts.lato(
                         fontWeight: FontWeight.w500,
                         fontSize: 18,
                       ),
                     ),
                     Text(
-                      "\u20B940.00",
+                      "\u20B9${(productsData["discountedTotal"] - productsData["total"]).toStringAsFixed(2)}",
                       style: GoogleFonts.lato(
                         fontWeight: FontWeight.w500,
                         fontSize: 18,
@@ -545,14 +602,14 @@ Widget _expandedContent(BuildContext context, int totalLength, List products) {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Text(
-                      "Discount:",
+                      "Delivery Fee:",
                       style: GoogleFonts.lato(
                         fontWeight: FontWeight.w500,
                         fontSize: 18,
                       ),
                     ),
                     Text(
-                      "10%",
+                      isFreeDelivery ? "Free" : "\u20B9$deliveryFee",
                       style: GoogleFonts.lato(
                         fontWeight: FontWeight.w500,
                         fontSize: 18,
@@ -573,7 +630,7 @@ Widget _expandedContent(BuildContext context, int totalLength, List products) {
                     Row(
                       children: [
                         Text(
-                          "\u20B9${(totalLength * 10) + 40}",
+                          "\u20B9${productsData["total"]}",
                           style: GoogleFonts.lato(
                             decoration: TextDecoration.lineThrough,
                             fontSize: 16,
@@ -639,7 +696,7 @@ Widget _expandedContent(BuildContext context, int totalLength, List products) {
           const Gap(20),
           CheckoutButton(
             amount: amount,
-            products: products,
+            products: productsData["products"],
           ),
           const Gap(20),
           Row(
@@ -696,7 +753,7 @@ class _CheckoutButtonState extends State<CheckoutButton> {
 
         var order = await createOrder(
           widget.amount * 100,
-          widget.products.join(","),
+          "",
           false,
           0,
           {
