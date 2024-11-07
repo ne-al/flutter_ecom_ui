@@ -630,7 +630,7 @@ Widget _expandedContent(
                     Row(
                       children: [
                         Text(
-                          "\u20B9${productsData["total"]}",
+                          "\u20B9${productsData["total"].toStringAsFixed(2)}",
                           style: GoogleFonts.lato(
                             decoration: TextDecoration.lineThrough,
                             fontSize: 16,
